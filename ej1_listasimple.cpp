@@ -8,7 +8,6 @@ using namespace std;
 struct node {
     int id;
     char name[30];
-    int length = {0};
     node *next;
 };
 
@@ -23,12 +22,12 @@ node *createNode (){
     newNode->next = NULL;
     return newNode;
 }
-void pushNode(node **tail, node *newNode)
+void pushNode(node **tail, node *newNode, int *length)
 {
     if (*tail == NULL) {
         *tail = newNode;
         (*tail)->next = NULL;
-        (*tail)->length++;
+        *length = *length + 1;
     }
     else {
         node *temp = *tail;
@@ -41,8 +40,8 @@ void pushNode(node **tail, node *newNode)
     }
 }
 
-void insertNode(int position, node **tail, node *nodeToInsert){
-    if (position >= (*tail)->length || position < 0) return;
+void insertNode(int position, node **tail, node *nodeToInsert, int *length){
+    if (position >= *length || position < 0) return;
 
     node *currentNode = *tail;
     node *prevNode = NULL;
@@ -54,16 +53,17 @@ void insertNode(int position, node **tail, node *nodeToInsert){
     }
     if(prevNode != NULL) prevNode->next = nodeToInsert;
     nodeToInsert->next = currentNode;
-    (*tail)->length++;
+    if(position == 0) *tail = nodeToInsert;
+    *length = *length + 1;
 }
-void insertNodeById(node **tail,int nodeId, node *nodeToInsert){
+void insertNodeById(node **tail,int nodeId, node *nodeToInsert, int *length){
     node *currentNode = *tail;
     node *prevNode = NULL;
     cout << "Inserting node after: " << nodeId << endl;
     if((*tail)->id == nodeId){
       nodeToInsert->next = currentNode->next;
       (*tail)->next = nodeToInsert;
-      (*tail)->length++;
+      length++;
       return;
     }
     do {
@@ -73,13 +73,14 @@ void insertNodeById(node **tail,int nodeId, node *nodeToInsert){
     } while (prevNode->id != nodeId);
     prevNode->next = nodeToInsert;
     nodeToInsert->next = currentNode;
-    (*tail)->length++;
+    *length = *length + 1;
 }
 
-void deleteNode(int position, node **tail){
-    if (position >= (*tail)->length || position < 0) return;
+void deleteNode(int position, node **tail, int *length){
+    if (position >= *length || position < 0) return;
     if (position == 0) {
       *tail = (*tail)->next != NULL ? (*tail)->next : NULL;
+      *length = *length - 1;
       return;
     }
 
@@ -93,25 +94,26 @@ void deleteNode(int position, node **tail){
     }
     if(prevNode != NULL) prevNode->next = currentNode->next;
     delete currentNode;
-    (*tail)->length--;
+    *length = *length - 1;
 }
-void deleteNodeById(node **tail,int nodeId){
+void deleteNextNodeById(node **tail,int nodeId, int *length){
     node *currentNode = *tail;
     node *prevNode = NULL;
 
     if ((*tail)->id == nodeId) {
       *tail = (*tail)->next != NULL ? (*tail)->next : NULL;
+      *length = *length - 1;
       return;
     }
 
-    while (currentNode->id != nodeId){
+    while (prevNode->id != nodeId){
       prevNode = currentNode;
       currentNode = currentNode->next;
       if(currentNode == NULL) return;
     }
     if(prevNode != NULL) prevNode->next = currentNode->next;
     delete currentNode;
-    (*tail)->length--;
+    *length = *length - 1;
 }
 
 void printNode(node *tail) {
@@ -133,6 +135,7 @@ int main() {
     int option;
     int position;
     int nodeId;
+    int length = 0;
 
 
   while(option != 8){
@@ -180,7 +183,7 @@ int main() {
         {
           cout << "Enter the id of the node to delete" << endl;
           cin >> nodeId;
-          deleteNodeById(&tail, nodeId);
+          deleteNextNodeById(&tail, nodeId);
         }
         break;
     case 6:
